@@ -4,16 +4,15 @@ Thomas Punnala
 
 ## Introduction
 This project implements a simple serverless file processing architecture in Amazon Web Services using Infrastructure as Code with Terraform. The goal is to deploy small cloud-based solution that can automatically process files uploaded to cloud storage.  
-In this architecture files uploaded to an Amazon S3 bucket trigger and AWS lambda function. The lambda function processes the file (counts words and lines inside of the text file and adds timestamp) and stores the result in seperate S3 output bucket. Additionally an Amazon SNS topic is used to send notification when processing is completed.  
-The main objective is to gain experience in simple event driven cloud architecture, deploying infrastructure using Terraform and using AWS managed services S3, Lambda, and SNS.  
+In this architecture files uploaded to an Amazon S3 bucket trigger and AWS lambda function. The lambda function processes the file (counts words and lines inside of the text file and adds timestamp) and stores the result in seperate S3 output bucket.
+The main objective is to gain experience in simple event driven cloud architecture, deploying infrastructure using Terraform and using AWS managed services S3 and Lambda.  
 
 ## Resources
 S3  
-Lambda  
-SNS  
+Lambda   
 
 ## Design
-This architecture is based on an event driven serverless model. When file is uploaded to an S3 input bucket, and event triggers a Lambda function that processes the file and stores the result in an S3 output bucket. After processing the function sends a notification via SNS.  
+This architecture is based on an event driven serverless model. When file is uploaded to an S3 input bucket, and event triggers a Lambda function that processes the file and stores the result in an S3 output bucket.
 Serverless approach was chosen to reduce operational complexity. AWS lambda eliminates the need to manage servers and allows automatic scaling based on events.  
 There is also no VPC usage. All selected services are fully managed AWS services that operate outside of user defined VPC by default. Adding a VPC would add unnecessary complexity without providing additional benefits in this project.  
 Terraform is used to define and deploy the infrastructure as code. This allows the enviroment to be recreated quickly.  
@@ -185,10 +184,27 @@ Copy example test to the input bucket and make test event for Lambda. Run test e
 Check the response.json and see if response was written in output bucket. Copy file from output bucket and see result. Seems to be working.  
 
 ### Add S3 triggers for Lambda function
+In this part S3 is given permission to use Lambda function when input bucket is receiving new txt-file. Depends on was included so Terraform will wait for permission before creating bucket notification. 
 
+![pic17](./Pictures/pic17.png)  
 
+![pic18](./Pictures/pic18.png)  
 
+### Testing
+
+```
+echo -e "aws project test\nthis is the second line" > final-test.txt
+aws s3 cp final-test.txt s3://file-pipeline-input-992382537650/ --profile default
+```  
+
+```
+aws s3 ls s3://file-pipeline-output-992382537650/processed/ --profile default
+```
+![pic19](./Pictures/pic19.png)  
+
+![pic20](./Pictures/pic20.png)  
 
 ## Enhancements
+This project can be enchanced with adding Amazon Simple Notification Service to trigger after Lambda function.  
 
 ### References
