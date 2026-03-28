@@ -208,3 +208,7 @@ aws s3 ls s3://file-pipeline-output-992382537650/processed/ --profile default
 This project can be enchanced with adding Amazon Simple Notification Service to trigger after Lambda function.  
 
 ### References
+
+Terraform. 2026. https://registry.terraform.io/providers/hashicorp/aws/6.38.0  
+
+AWS_CLI_DOCUMENTATION. 2026. https://docs.aws.amazon.com/cli/latest/userguide/cli_code_examples.html  
