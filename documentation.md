@@ -39,6 +39,24 @@ Next, I installed Terraform. Install guide can be found here: https://developer.
 
 ![pic4](./Pictures/pic4.png)  
 
+### Starting Terraform project
+I started Terraform project by creating new repository in Github and cloning it to the local mahcine. After this I opened file named provider.tf in VSCode. After providing region and profile to the file I saved it and used command `terraform init` to see if Terraform works with AWS.  
+
+![pic5](./Pictures/pic5.png)  
+
+Next, I added this line in the provider.tf -file: `data "aws_caller_identity" "current" {}`. This tells Terraform who the AWS user is.  
+
+Now I am ready to test creating S3 bucket with Terraform. I created file named main.tf and opened it in VSCode.  
+
+![pic6](./Pictures/pic6.png)  
+
+`terraform plan` gives no errors so I created also the output bucket using same logic. Next, I tried the `terraform apply` and checked if the S3 buckets are created.  
+
+![pic7](./Pictures/pic7.png)  
+
+![pic8](./Pictures/pic8.png)  
+S3 buckets are created.  
+
 
 
 ## Enhancements
