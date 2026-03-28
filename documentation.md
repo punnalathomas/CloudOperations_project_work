@@ -171,7 +171,20 @@ resource "aws_lambda_function" "processor" {
   }
 }
 ```
+![pic13](./Pictures/pic13.png)  
 
+### Lets run some tests
+
+![pic14](./Pictures/pic14.png)  
+Make example text-file  
+
+![pic15](./Pictures/pic15.png)  
+Copy example test to the input bucket and make test event for Lambda. Run test event manually.  
+
+![pic16](./Pictures/pic16.png)  
+Check the response.json and see if response was written in output bucket. Copy file from output bucket and see result. Seems to be working.  
+
+### Add S3 triggers for Lambda function
 
 
 
