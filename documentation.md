@@ -21,6 +21,24 @@ Seperate S3 buckets are used to keep architecture clear and also makes it easier
 Because the system is event driven it triggers only when new data is uploaded. This reduces cost and improves efficiency.  
 
 ## Implementation
+### Setting up AWS and Terraform
+I started this project by launching my Linux Debian virtualmachine. I created local directory to store AWS credentials by using command `mkdir ~/.aws`, this is the standard path where the AWS CLI and Terraform will look for the credentials.  
+
+Next, I created file for the credentials by using command `nano ~/.aws/credentials` and added my access key, secret access key and session token locally.  
+
+![pic1](./Pictures/pic1.png)  
+
+Next, I installed AWS CLI in my local Linux machine by using command `sudo apt install awscli`. First time I tried command `aws --version` I got error that my credentials file was not working correctly. I made small change in credentials file (added [default] as first line in file) and got it working.  
+
+![pic2](./Pictures/pic2.png)  
+
+![pic3](./Pictures/pic3.png)  
+Credentials working correctly.  
+
+Next, I installed Terraform. Install guide can be found here: https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli  
+
+![pic4](./Pictures/pic4.png)  
+
 
 
 ## Enhancements
