@@ -25,35 +25,35 @@ I started this project by launching my Linux Debian virtualmachine. I created lo
 
 Next, I created file for the credentials by using command `nano ~/.aws/credentials` and added my access key, secret access key and session token locally.  
 
-![pic1](./Pictures/pic1.png)  
+![pic1](./pictures/pic1.png)  
 
 Next, I installed AWS CLI in my local Linux machine by using command `sudo apt install awscli`. First time I tried command `aws --version` I got error that my credentials file was not working correctly. I made small change in credentials file (added [default] as first line in file) and got it working.  
 
-![pic2](./Pictures/pic2.png)  
+![pic2](./pictures/pic2.png)  
 
-![pic3](./Pictures/pic3.png)  
+![pic3](./pictures/pic3.png)  
 Credentials working correctly.  
 
 Next, I installed Terraform. Install guide can be found here: https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli  
 
-![pic4](./Pictures/pic4.png)  
+![pic4](./pictures/pic4.png)  
 
 ### Starting Terraform project
 I started Terraform project by creating new repository in Github and cloning it to the local mahcine. After this I opened file named provider.tf in VSCode. After providing region and profile to the file I saved it and used command `terraform init` to see if Terraform works with AWS.  
 
-![pic5](./Pictures/pic5.png)  
+![pic5](./pictures/pic5.png)  
 
 Next, I added this line in the provider.tf -file: `data "aws_caller_identity" "current" {}`. This tells Terraform who the AWS user is.  
 
 Now I am ready to test creating S3 bucket with Terraform. I created file named main.tf and opened it in VSCode.  
 
-![pic6](./Pictures/pic6.png)  
+![pic6](./pictures/pic6.png)  
 
 `terraform plan` gives no errors so I created also the output bucket using same logic. Next, I tried the `terraform apply` and checked if the S3 buckets are created.  
 
-![pic7](./Pictures/pic7.png)  
+![pic7](./pictures/pic7.png)  
 
-![pic8](./Pictures/pic8.png)  
+![pic8](./pictures/pic8.png)  
 S3 buckets are created.  
 
 After confirming that the buckets are created, it was time to make directory for the lambda function. I used ChatGPT to create python code for the data processing.  
@@ -108,22 +108,22 @@ Next, I packed code in to ZIP file before deployment. This is done because AWS L
 ### Creating IAM role
 Added to main.tf code for the IAM-role.  
 
-![pic9](./Pictures/pic9.png)  
+![pic9](./pictures/pic9.png)  
 
-![pic10](./Pictures/pic10.png)  
+![pic10](./pictures/pic10.png)  
 Testing `terraform plan`  
 
 ### Adding rules to the IAM role
 Now that I created the IAM role for the lambda function, it is time to add permissions to the role. This policy will allow Lambda to write CloudWatch Logs, with this I will be able to see easily what Lambda is doing.  
 In second part Lambda has right to take file from the S3 input bucket and process it. In third part Lambda is given right to write the new file in the output bucket.  
 
-![pic11](./Pictures/pic11.png)  
+![pic11](./pictures/pic11.png)  
 
 ### Creating Lambda resource
 This lambda resource is named as processor and function name is file-pipeline-processor. Recently created IAM role is attached to it. Also there is our python-function as zip-file which the Lambda function will be using. Source hash is also added for Terraform to notice if code is changed. Also enviroment variable is set to write in S3 output bucket.  
 I added also automatic zipping for python code. This is done because if someone else tries to use this project they do not need manually zip python file before using.  
 
-![pic12](./Pictures/pic12.png)  
+![pic12](./pictures/pic12.png)  
 
 After trying `terraform apply` I got error this error:  
 aws_iam_role.lambda_role: Creating...
@@ -170,25 +170,25 @@ resource "aws_lambda_function" "processor" {
   }
 }
 ```
-![pic13](./Pictures/pic13.png)  
+![pic13](./pictures/pic13.png)  
 
 ### Lets run some tests
 
-![pic14](./Pictures/pic14.png)  
+![pic14](./pictures/pic14.png)  
 Make example text-file  
 
-![pic15](./Pictures/pic15.png)  
+![pic15](./pictures/pic15.png)  
 Copy example test to the input bucket and make test event for Lambda. Run test event manually.  
 
-![pic16](./Pictures/pic16.png)  
+![pic16](./pictures/pic16.png)  
 Check the response.json and see if response was written in output bucket. Copy file from output bucket and see result. Seems to be working.  
 
 ### Add S3 triggers for Lambda function
 In this part S3 is given permission to use Lambda function when input bucket is receiving new txt-file. Depends on was included so Terraform will wait for permission before creating bucket notification. 
 
-![pic17](./Pictures/pic17.png)  
+![pic17](./pictures/pic17.png)  
 
-![pic18](./Pictures/pic18.png)  
+![pic18](./pictures/pic18.png)  
 
 ### Testing
 
@@ -200,9 +200,9 @@ aws s3 cp final-test.txt s3://file-pipeline-input-992382537650/ --profile defaul
 ```
 aws s3 ls s3://file-pipeline-output-992382537650/processed/ --profile default
 ```
-![pic19](./Pictures/pic19.png)  
+![pic19](./pictures/pic19.png)  
 
-![pic20](./Pictures/pic20.png)  
+![pic20](./pictures/pic20.png)  
 
 ## Enhancements
 This project can be enchanced with adding Amazon Simple Notification Service to trigger after Lambda function.  
