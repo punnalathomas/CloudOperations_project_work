@@ -106,6 +106,74 @@ Basically function processes files uploaded to S3 input bucket and stores result
 
 Next, I packed code in to ZIP file before deployment. This is done because AWS Lambda is expecting ZIP-file instead of the .py-file.  
 
+### Creating IAM role
+Added to main.tf code for the IAM-role.  
+
+![pic9](./Pictures/pic9.png)  
+
+![pic10](./Pictures/pic10.png)  
+Testing `terraform plan`  
+
+### Adding rules to the IAM role
+Now that I created the IAM role for the lambda function, it is time to add permissions to the role. This policy will allow Lambda to write CloudWatch Logs, with this I will be able to see easily what Lambda is doing.  
+In second part Lambda has right to take file from the S3 input bucket and process it. In third part Lambda is given right to write the new file in the output bucket.  
+
+![pic11](./Pictures/pic11.png)  
+
+### Creating Lambda resource
+This lambda resource is named as processor and function name is file-pipeline-processor. Recently created IAM role is attached to it. Also there is our python-function as zip-file which the Lambda function will be using. Source hash is also added for Terraform to notice if code is changed. Also enviroment variable is set to write in S3 output bucket.  
+I added also automatic zipping for python code. This is done because if someone else tries to use this project they do not need manually zip python file before using.  
+
+![pic12](./Pictures/pic12.png)  
+
+After trying `terraform apply` I got error this error:  
+aws_iam_role.lambda_role: Creating...
+╷
+│ Error: creating IAM Role (file-pipeline-lambda-role): operation error IAM: CreateRole, https response error StatusCode: 403, RequestID: b8e3d809-d190-4f1f-8933-aeea88191204, api error AccessDenied: User: arn:aws:sts::992382537650:assumed-role/voclabs/user4424698=Thomas_Punnala is not authorized to perform: iam:CreateRole on resource: arn:aws:iam::992382537650:role/file-pipeline-lambda-role because no identity-based policy allows the iam:CreateRole action
+│ 
+│   with aws_iam_role.lambda_role,
+│   on main.tf line 9, in resource "aws_iam_role" "lambda_role":
+│    9: resource "aws_iam_role" "lambda_role" {  
+
+Instead of creating my own IAM role, I tried to using precreated IAM role and see if it works with that. main.tf at this point:  
+```
+resource "aws_s3_bucket" "input" {
+  bucket = "file-pipeline-input-${data.aws_caller_identity.current.account_id}"
+}
+
+resource "aws_s3_bucket" "output" {
+  bucket = "file-pipeline-output-${data.aws_caller_identity.current.account_id}"
+}
+
+data "aws_iam_role" "labrole" {
+  name = "LabRole"
+}
+
+data "archive_file" "lambda_zip" {
+  type        = "zip"
+  source_file = "${path.module}/lambda/lambda_function.py"
+  output_path = "${path.module}/lambda/lambda_function.zip"
+}
+
+resource "aws_lambda_function" "processor" {
+  function_name    = "file-pipeline-processor"
+  role             = data.aws_iam_role.labrole.arn
+  handler          = "lambda_function.lambda_handler"
+  runtime          = "python3.12"
+  filename         = data.archive_file.lambda_zip.output_path
+  source_code_hash = data.archive_file.lambda_zip.output_base64sha256
+  timeout          = 10
+
+  environment {
+    variables = {
+      OUTPUT_BUCKET = aws_s3_bucket.output.bucket
+    }
+  }
+}
+```
+
+
+
 
 
 ## Enhancements
