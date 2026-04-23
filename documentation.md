@@ -6,10 +6,12 @@ Thomas Punnala
 This project implements a simple serverless file processing architecture in Amazon Web Services using Infrastructure as Code with Terraform. The goal is to deploy small cloud-based solution that can automatically process files uploaded to cloud storage.  
 In this architecture files uploaded to an Amazon S3 bucket trigger and AWS lambda function. The lambda function processes the file (counts words and lines inside of the text file and adds timestamp) and stores the result in seperate S3 output bucket.
 The main objective is to gain experience in simple event driven cloud architecture, deploying infrastructure using Terraform and using AWS managed services S3 and Lambda.  
+For the phace 2 implementation I added a lifecycle policy for the S3 output bucket.  
 
 ## Resources
 S3  
 Lambda   
+Glacier
 
 ## Design
 This architecture is based on an event driven serverless model. When file is uploaded to an S3 input bucket, and event triggers a Lambda function that processes the file and stores the result in an S3 output bucket.
@@ -18,6 +20,7 @@ There is also no VPC usage. All selected services are fully managed AWS services
 Terraform is used to define and deploy the infrastructure as code. This allows the enviroment to be recreated quickly.  
 Seperate S3 buckets are used to keep architecture clear and also makes it easier to manage permissions and lifecycle policies in future.  
 Because the system is event driven it triggers only when new data is uploaded. This reduces cost and improves efficiency.  
+Lifecycle policy was added for the S3 output bucket to tranfer processed files in to Glacier storage after 30 days and deletation of those files after 120 days.  
 
 ## Implementation
 ### Setting up AWS and Terraform
@@ -203,6 +206,44 @@ aws s3 ls s3://file-pipeline-output-992382537650/processed/ --profile default
 ![pic19](./pictures/pic19.png)  
 
 ![pic20](./pictures/pic20.png)  
+
+### Phase 2 implementation
+For the lifecycle policy I added this code in to main.tf -file.  
+```
+resource "aws_s3_bucket_lifecycle_configuration" "output_lifecycle" {
+  bucket = aws_s3_bucket.output.id
+
+  rule {
+    id     = "archive-and-expire-processed-files"
+    status = "Enabled"
+
+    filter {
+      prefix = "processed/"
+    }
+
+    transition {
+      days          = 30
+      storage_class = "GLACIER"
+    }
+
+    expiration {
+      days = 120
+    }
+  }
+}
+```
+This rule will add lifecycle policy for the S3 bucket. Rule will be added to the output bucket. There is also added filter for prefix, basically objects that include prefix "processed/" will be affected by this rule. Files will be tranfered to the Glacier storage after 30 days and complete deletion will be after 120 days.  
+Note: Lifecycle will be affected only to objects larger than 128KB. AWS does not transition smaller objects to Glacier storage classes by default.  
+
+![pic21](./pictures/pic21.png)  
+After adding the policy I run terraform plan and it looks to be working. Next, I will apply it and see how it works.  
+
+Apply was completed and on resource added. Now it´s time to test it.  
+
+![pic22](./pictures/pic22.png)  
+As we can see the lifecycle policy is attached to the output bucket.  
+
+Lifecycle policy is now applied. However AWS enforces a minimum object size of 128 KB for lifecycle transitions which means small output files may not be transitioned to Glacier in this demo.  
 
 ## Enhancements
 This project can be enchanced with adding Amazon Simple Notification Service to trigger after Lambda function.  
